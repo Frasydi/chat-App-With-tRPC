@@ -1,0 +1,3 @@
+node_modules
+packages/backend/prisma/migrations
+packages/backend/prisma/dev.db

@@ -1,0 +1,29 @@
+{
+  "name": "tugasakhirweb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "concurrently \"wsrun --parallel start  \"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "concurrently": "^5.2.0",
+    "wsrun": "^5.2.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tanstack/react-query": "^4.24.4",
+    "@trpc/client": "^10.9.1",
+    "@trpc/next": "^10.9.1",
+    "@trpc/react-query": "^10.9.1",
+    "@trpc/server": "^10.9.1",
+    "cookie-parser": "^1.4.6"
+  }
+}

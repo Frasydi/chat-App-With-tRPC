@@ -1,0 +1,29 @@
+.users {
+    width: 100%;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+
+.user {
+    display: grid;
+    place-items: center;
+    height: 10rem;
+}
+
+.boxUser {
+    width: 80%;
+    height: 90%;
+    border-radius: .5rem;
+    font-weight: bolder;
+    font-size: xx-large;
+    background-color: darkkhaki;
+    display: grid;
+    place-items: center;
+}
+
+.boxUser:hover {
+    cursor: pointer;
+}
