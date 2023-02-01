@@ -1,6 +1,6 @@
 Ini adalah aplikasi chat yang menggunakan tRPC
 
-Untuk menjalankan aplikasi ini kalian cukup 
+Untuk inisialisasi pertama ini kalian cukup 
 
 1. Jalankan `yarn install`
 2. masuk ke direktori backend dengan cara `cd packages/backend`
