@@ -73,6 +73,7 @@ export default function Login() {
         return
       }
       Swal.fire("Berhasil", res.msg, "success")
+      setRegister(false)
     })
   }
 
