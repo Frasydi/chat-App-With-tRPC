@@ -135,3 +135,36 @@ export async function login({username, password} : {username : string, password 
         }
     }
 }
+
+export async function hapusAkun(uuid:string) {
+    try{
+        const result = await prisma.user.delete({
+            where : {
+                uuid : uuid
+            }
+        })
+
+        if(result == null) {
+            return {
+                status : false,
+                msg : "Tidak menemukan user"
+            }
+        }
+        await prisma.chat.deleteMany({where : {
+            OR : {
+                uuid : uuid,
+                uuid2 : uuid
+            }
+        }})
+        return {
+            status : true,
+            msg : "Berhasil menghapus user"
+        }
+    }catch(err) {
+        console.log(err)
+        return {
+            status : false,
+            msg : "Server sedang bermasalah"
+        }
+    }
+}

@@ -36,17 +36,18 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
   
-  socket.on('send-message', () => {
-    console.log("Ada yang mengirim pesan")
-    io.emit('message')
+  socket.on('message', (uuid) => {
+    io.emit('message', uuid)
   })
   socket.on('mengetik', (uuid) => {
     console.log(uuid)
-    io.emit('sedang-mengetik', uuid)
+    socket.broadcast.emit('sedang-mengetik', uuid)
   })
   socket.on("tidak-mengetik", (uuid) => {
-    io.emit("tidak-mengetik", uuid)
+    socket.broadcast.emit("tidak-mengetik", uuid)
   })
+
+  
 
 });
 

@@ -10,12 +10,12 @@ export default function Layout() {
     const loc = useLocation()
     const auth = trpc.auth.useMutation()
     const nav = useNavigate()
-    const [user, setUser] = useState({username : "", uuid : ""})
+    const [user, setUser] = useState({username : "", uuid : "0"})
     useEffect(() => {
         console.log("Lah")
         cekCookie()
         return () => {
-            setUser({username : "", uuid : ""})          
+            setUser({username : "", uuid : "0"})          
         }
     }, [0, loc.pathname])
 
@@ -24,10 +24,13 @@ export default function Layout() {
            
             if(!res.status) {
                 nav("/login")
+                return
             }
-            if(loc.pathname == "/login" && res.status) {
+            if(loc.pathname == "/login" ) {
                 nav("/")
+                return
             }
+            console.log(res.msg)
             setUser(res.msg as any)
         }).catch(err => {
             console.log(err)

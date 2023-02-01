@@ -1,7 +1,7 @@
 import {t} from "./trpc"
 import { z } from 'zod';
-import { createUsername, getAllUser, getUserfromuid, login } from "./controller/user";
-import { createChat, getChat } from "./controller/chat";
+import { createUsername, getAllUser, getUserfromuid, hapusAkun, login } from "./controller/user";
+import { createChat, deletePesan, getChat } from "./controller/chat";
 
 const tRouter =  t.router({
     getUser: t.procedure.input(z.string()).query(async(req) => {
@@ -9,7 +9,12 @@ const tRouter =  t.router({
       return await getUserfromuid(req.input)
     }), 
     login : t.procedure.input(z.object({username: z.string(), password : z.string()})).mutation(async (req) => {
-      return await login(req.input)
+      const result = await login(req.input)
+      if(result.status) {
+        req.ctx.setToken(result.msg)
+      }
+
+      return result
     }),
     createUser: t.procedure
       .input(z.object({ username: z.string(), password: z.string()}))
@@ -39,6 +44,24 @@ const tRouter =  t.router({
         return req.ctx.user
       }
       return await createChat(req.input)
+    }),
+    deleteChat : t.procedure.input(z.number()).mutation(async (req) => {
+      if(!req.ctx.user.status) {
+        return req.ctx.user
+      }
+      //@ts-ignore
+      return await deletePesan(req.input, req.ctx.user.msg.uuid )
+    }),
+    logout : t.procedure.mutation(async (req) => {
+      req.ctx.deleteToken()
+    }),
+    deleteAccount : t.procedure.mutation(async (req) => {
+      if(!req.ctx.user.status) {
+        return req.ctx.user
+      }
+      req.ctx.deleteToken()
+      //@ts-ignore
+      return await hapusAkun(req.ctx.user.msg.uuid)
     })
   });
 

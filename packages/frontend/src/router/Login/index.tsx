@@ -13,7 +13,6 @@ export default function Login() {
   const register = trpc.createUser.useMutation()
   const login = trpc.login.useMutation()
   const [isRegister, setRegister] = useState(false)
-  const [cookie, setcookies, deletecookies] = useCookies()
   const nav = useNavigate()
   useEffect(() => {
     return () => {
@@ -55,7 +54,6 @@ export default function Login() {
             }
           }
           ).then(() => {
-          setcookies("token", res.msg, {maxAge : 6000, path :"/"})
           
           nav("/")
         })

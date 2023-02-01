@@ -58,3 +58,39 @@ export async function createChat({uuid, uuid2, from , text}:{uuid: string, uuid2
         }
     }
 }
+
+export async function deletePesan(id:number, who : string) {
+  try {
+    const validate = await prisma.chat.findFirst({where : {
+      id : id
+    }})
+    if(!validate) {
+      return {
+        status : false,
+        msg : "Pesan tidak ditemukan"
+      }
+    }
+    if(validate.from != who) {
+      return {
+        status : false,
+        msg : "Anda bukan pengirim pesan ini"
+      }
+    }
+    const result = await prisma.chat.delete({
+      where: {
+        id
+      }
+    })
+    return {
+      status : true,
+      msg : "Berhasil menghapus pesan"
+    }
+  }
+  catch (err) {
+    console.log(err)
+    return { 
+      status : false,
+      msg : "Server Error"
+    }
+  }
+}

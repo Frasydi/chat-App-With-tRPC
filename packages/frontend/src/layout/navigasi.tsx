@@ -1,14 +1,38 @@
 import { useEffect } from 'react'
 import { useCookies } from 'react-cookie'
 import { NavigateFunction } from 'react-router-dom'
+import Swal from 'sweetalert2'
+import { trpc } from '../utils/trpc'
 import Style from './style.module.css'
 
 export default function Navigasi({ username, loc, nav }: { username: string, loc : string, nav:NavigateFunction }) {
-  const [cookie, setCookie, deleteCookie] = useCookies()
-
+  const logout = trpc.logout.useMutation()
   useEffect(() => {
     return () => {}
   }, [])
+  async function logOut() {
+    Swal.fire({
+      title : "Tunggu Sebentar",
+      text : "Sedang logout",
+      icon : "info",
+      showCancelButton : false,
+      showCloseButton : false,
+      showConfirmButton : false,
+      allowEscapeKey : false,
+      allowOutsideClick : false,
+      didOpen : async() => {
+        Swal.showLoading()
+        await logout.mutateAsync()
+        Swal.close()
+        nav("/login")
+      }
+    })
+    try {
+
+    }catch(err) {
+      Swal.fire("Tampaknya ada masalah", "", "error")
+    }
+  }
   return (
     <nav className={Style.nav}>
       <div className={Style.navBox}>
@@ -22,9 +46,9 @@ export default function Navigasi({ username, loc, nav }: { username: string, loc
             
             </div>
           <div style={{color : "red", alignSelf:"center", marginLeft:"2rem", cursor:"pointer"}} onClick={() => {
-            deleteCookie("token")
-            nav("/login")
+            logOut()
           }}>Log Out</div>
+          
         </div>
       </div>
     </nav>

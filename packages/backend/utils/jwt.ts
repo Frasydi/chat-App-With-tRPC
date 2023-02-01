@@ -24,6 +24,8 @@ export async function validation(token: string) {
 }
 
 export function createToken(data: any) {
-  const token = jwt.sign(data, process.env.SECRET_TOKEN as string)
+  const token = jwt.sign(data, process.env.SECRET_TOKEN as string, {
+    expiresIn : "30m"
+  })
   return token
 }

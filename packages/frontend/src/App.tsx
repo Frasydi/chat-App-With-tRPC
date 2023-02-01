@@ -43,7 +43,6 @@ const router = createBrowserRouter([
 
 export default function App() {
   const [queryClient] = useState(() => new QueryClient());
-  const [cookies, setcookies] = useCookies()
 
   const [trpcClient] = useState(() =>
     trpc.createClient({

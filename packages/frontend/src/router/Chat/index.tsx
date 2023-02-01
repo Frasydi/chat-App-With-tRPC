@@ -21,77 +21,102 @@ export default function Chat() {
   //@ts-ignore
   const chat = trpc.getAllChat.useQuery({ uuid: user.uuid, uuid2: params.uuid })
   const sendMessage = trpc.sendChat.useMutation()
-  const [sedangMengetik, setSedangMengetik] = useState(false) 
+  const deleteMessage = trpc.deleteChat.useMutation()
+  const [sedangMengetik, setSedangMengetik] = useState(false)
+  const [prevChatLength, setpreChatLength] = useState(0)
   async function send() {
-    const result = await sendMessage
-      .mutateAsync({
+    //@ts-ignore
+    const text = document.getElementById('msg').value
+    //@ts-ignore
+    document.getElementById('msg').value = ''
+    try {
+      const result = await sendMessage.mutateAsync({
         uuid: user.uuid,
         uuid2: params.uuid as string,
         //@ts-ignore
-        text: document.getElementById("msg").value,
+        text: text,
         from: user.uuid,
       })
+
       console.log(result)
-      if(!result.status) {
+
+      if (!result.status) {
         return
       }
-      socket.emit('send-message')
-      //@ts-ignore
-      document.getElementById("msg").value = ''
-
+      socket.emit('message', user.uuid)
+      chat.refetch()
+    } catch (err) {}
   }
+  async function hapusPesan(id: number) {
+    const result = await deleteMessage.mutateAsync(id)
+    if (!result.status) {
+      return
+    }
+    socket.emit('message', user.uuid)
+    chat.refetch()
+  }
+  useEffect(() => {
+    //@ts-ignore
+    if (chat.data?.msg.length > prevChatLength) {
+      //@ts-ignore
+      const tes = document.getElementById('chatsContainer')?.lastChild
+      console.log(tes)
+      //@ts-ignore
+      tes?.scrollIntoView()
+    }
+    //@ts-ignore
+    setpreChatLength(chat.data?.msg.length)
+  }, [chat.data])
+
   useEffect(() => {
     socket.on('connect', () => {
       setIsConnected(true)
-     
     })
-  
+
     socket.on('disconnect', () => {
       setIsConnected(false)
     })
-    socket.on('message', () => {
-      console.log("Lah")
+    socket.on('message', (uuid) => {
+      if (params.uuid != uuid) {
+        return
+      }
       chat.refetch()
-      const tes = document.getElementById("chatsContainer")?.lastChild
-      //@ts-ignore
-      tes.scrollIntoView()
     })
-    socket.on("sedang-mengetik", (uuid) => {
-      if(uuid == params.uuid) {
-      setSedangMengetik(true)
+    socket.on('sedang-mengetik', (uuid) => {
+      if (uuid == params.uuid) {
+        setSedangMengetik(true)
       }
     })
-    socket.on("tidak-mengetik", (uuid) => {
-      if(uuid == params.uuid) {
+    socket.on('tidak-mengetik', (uuid) => {
+      if (uuid == params.uuid) {
         setSedangMengetik(false)
-        }
+      }
     })
 
-    socket.on("connect_failed", () => {
-      Swal.fire("Tidak dapat terhubung", "", "error")
+    socket.on('connect_failed', () => {
+      Swal.fire('Tidak dapat terhubung', '', 'error')
     })
 
-    socket.on("Error", () => {
-      Swal.fire("Server Error", "", "error")
+    socket.on('Error', () => {
+      Swal.fire('Server Error', '', 'error')
     })
-    
+
     return () => {
-      socket.off("connect")
-      socket.off("disconnect")
-      socket.off("message")
-      socket.off("sedang-mengetik")
-      socket.off("tidak-mengetik")
-      socket.off("connect_failed")
-      
+      socket.off('connect')
+      socket.off('disconnect')
+      socket.off('message')
+      socket.off('sedang-mengetik')
+      socket.off('tidak-mengetik')
+      socket.off('connect_failed')
+      socket.off('Error')
     }
   }, [])
-  
 
-  
-
-
-  if (user2.isLoading || user2.isError) {
+  if (user2.isLoading || user2.isError || chat.isLoading || chat.isError) {
     return <h1>Loading</h1>
+  }
+  if (!user2.data.status) {
+    return <h1>{user2.data.msg as string}</h1>
   }
   return (
     <div className={Style.chatMain}>
@@ -101,14 +126,12 @@ export default function Chat() {
             //@ts-ignore
             user2.data.msg.username
           }
-          <br/>
-          {
-           sedangMengetik ?  "(Sedang Mengetik)" : ""
-          }
+          <br />
+          {sedangMengetik ? '(Sedang Mengetik)' : ''}
         </p>
-        <div className={Style.chatContainer} id={"chatsContainer"}>
+        <div className={Style.chatContainer} id={'chatsContainer'}>
           {chat.isLoading || chat.isError ? (
-            <>Loading</>
+            <h1>Loading</h1>
           ) : (
             //@ts-ignore
             chat.data?.msg.map((item: any, index: number) => {
@@ -117,12 +140,30 @@ export default function Chat() {
                   className={`${Style.chatBox} ${item.from == user.uuid ? Style.fromMe : ''}`}
                   key={index}
                 >
-               {item.text}<br/><p style={{fontWeight:"lighter", fontSize : "small"}}>{new Date(item.date).toLocaleString()}</p>
+                  {item.text}
+                  <br />
+                  <p style={{ fontWeight: 'lighter', fontSize: 'small' }}>
+                    {new Date(item.date).toLocaleString()}
+                  </p>
+                  {item.from == user.uuid ? (
+                    <>
+                      <br />
+                      <a
+                        style={{ color: 'red', cursor: 'pointer', userSelect : "none" }}
+                        onClick={() => {
+                          hapusPesan(item.id)
+                        }}
+                      >
+                        Hapus
+                      </a>
+                    </>
+                  ) : (
+                    <></>
+                  )}
                 </div>
               )
             })
           )}
-         
         </div>
       </div>
 
@@ -136,16 +177,16 @@ export default function Chat() {
               className={Style.input}
               id="msg"
               onKeyDown={(ev) => {
-                if(ev.key != "Enter") {
+                if (ev.key != 'Enter') {
                   return
                 }
                 send()
               }}
               onFocus={() => {
-                socket.emit("mengetik", user.uuid)
+                socket.emit('mengetik', user.uuid)
               }}
               onBlur={() => {
-                socket.emit("tidak-mengetik", user.uuid)
+                socket.emit('tidak-mengetik', user.uuid)
               }}
             />
             <Button
