@@ -393,7 +393,7 @@ stateDiagram-v2
 
 ```mermaid
 ---
-title: Animal example
+title: Chat App DB Schema
 ---
 classDiagram
   class User {
