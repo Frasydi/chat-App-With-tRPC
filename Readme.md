@@ -163,7 +163,7 @@ trpc.namadarirouterkalian.query()
 
 >Router yang saya buat, hampir semuanya memerlukan cookie. Jadi alangkah baiknya jika kalian membuat aplikasi web untuk menggunakan backend ini
 
-# Penjelasan cara kerja dari masing-masing Router 
+# Diagram Router 
 
 
 ```mermaid
