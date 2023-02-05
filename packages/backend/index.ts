@@ -8,7 +8,7 @@ import http from "http"
 import {Server} from "socket.io"
 import cookieParser from "cookie-parser";
 import * as path from "path"
-import {ExpressPeerServer} from "peer"
+
 dotenv.config()
 
 
@@ -28,24 +28,11 @@ export type AppRouter = typeof appRouter;
 const app = express();
 const port = 8000;
 const server = http.createServer(app)
-const peerServer = ExpressPeerServer(server, {
-  path: '/app',
-  //@ts-ignore
-  debug : true,
-  
-});
 
-peerServer.on("connection", (client) => {
-  console.log(client.getId())
-})
-
-peerServer.on("disconnect", (client) => {
-  console.log(client.getId())
-})
 
 const io = new Server(server, {
   cors : {
-    origin : "http://localhost:5173"
+    origin : "*"
   },
   path : "/api/socket"
 })
@@ -89,7 +76,6 @@ app.use(cors())
 app.use(cookieParser())
 
 app.use("/api/gambar",express.static(path.join(__dirname, 'image')));
-app.use('/api/peer', peerServer);
 app.use(
   '/api/trpc',
   trpcExpress.createExpressMiddleware({

@@ -19,9 +19,7 @@ export default function Home() {
   const [sedangMengetik, setSedangMengetik] = useState(false)
   const [pesan, setPesan] = useState('')
   const [prevChat, setPrevChat] = useState(0)
-  const chat = trpc.getAllChat.useQuery({
-    uuid2: selectedChat,
-  })
+  const chat = trpc.getAllChat.useQuery(selectedChat)
   const user = trpc.getUserFromToken.useQuery()
   const user2 = trpc.getUser.useQuery(selectedChat)
   const kirimPesan = trpc.sendChat.useMutation()

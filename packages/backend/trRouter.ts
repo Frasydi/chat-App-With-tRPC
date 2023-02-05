@@ -35,7 +35,7 @@ const tRouter =  t.router({
     createUser: t.procedure
       .input(z.object({ username: z.string(), password: z.string()}))
       .mutation(async (req) => {
-        // use your ORM of choice
+       
         return await createUsername(
           req.input
         )
@@ -50,12 +50,12 @@ const tRouter =  t.router({
       //@ts-ignore
       return await getAllUser(req.ctx.user.msg.uuid)
     }),
-    getAllChat : t.procedure.input(z.object({uuid2 : z.string()})).query(async(req) => {
+    getAllChat : t.procedure.input(z.string()).query(async(req) => {
       if(!req.ctx.user.status) {
         return req.ctx.user
       }
       //@ts-ignore
-      return await getChat({uuid : req.ctx.user.msg.uuid,...req.input})
+      return await getChat({uuid : req.ctx.user.msg.uuid,uuid2 : req.input})
     }),
     sendChat : t.procedure.input(z.object({uuid2 : z.string(), text : z.string()})).mutation(async (req) => {
       if(!req.ctx.user.status) {
