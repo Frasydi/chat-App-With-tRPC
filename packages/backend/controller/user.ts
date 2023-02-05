@@ -66,7 +66,7 @@ export async function createUsername({username, password} : {username:string, pa
     }
 }
 
-export async function getAllUser(uuid:string) : Promise<{ status: boolean; msg: string | Array<{username : string, uuid:string }>}> {
+export async function getAllUser(uuid:string)  {
     try {
         const result = await prisma.user.findMany({
             select : {
@@ -101,6 +101,44 @@ export async function getAllUser(uuid:string) : Promise<{ status: boolean; msg: 
     }
 }
 
+
+export async function searchUser(uuid:string, search:string) {
+    try {
+        const result = await prisma.user.findMany({
+            select : {
+                uuid : true,
+                username : true,
+            }
+            ,
+            where : {
+                NOT : {
+                    uuid : uuid
+                },
+                username : {
+                    contains : search
+                }
+            },
+            
+        })
+        if(result.length == 0) 
+        {
+            return {
+                status : false,
+                msg : "Users Kosong"
+            }
+        }
+        return {
+            status : true,
+            msg : result
+        }
+    }catch(err) {
+        console.log(err)
+        return {
+            status : false,
+            msg : "Server Error"
+        }
+    }
+}
 
 export async function login({username, password} : {username : string, password : string}) {
     try{
@@ -152,8 +190,8 @@ export async function hapusAkun(uuid:string) {
         }
         await prisma.chat.deleteMany({where : {
             OR : {
-                uuid : uuid,
-                uuid2 : uuid
+                from : uuid,
+                to : uuid
             }
         }})
         return {

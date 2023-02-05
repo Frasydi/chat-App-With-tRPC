@@ -18,7 +18,6 @@ export const createContext = async({
         maxAge : 0
       })
     }
-    console.log("cookie "+ req.cookies["token"])
     if(req.cookies["token"] == null) {
       return {
         user : {

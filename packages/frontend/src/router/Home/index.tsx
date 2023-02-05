@@ -1,60 +1,482 @@
-import { useEffect, useContext } from 'react'
-import { useCookies } from 'react-cookie'
-import { useNavigate } from 'react-router-dom'
-import Swal from 'sweetalert2'
-import { UserCTX } from '../../layout'
+import { useEffect, useRef, useState } from 'react'
 import { trpc } from '../../utils/trpc'
+import { BiSend, BiArrowBack } from 'react-icons/bi'
+import { BsCardImage } from 'react-icons/bs'
+import SideBar from './SideBar'
 import Style from './style.module.css'
+import io from 'socket.io-client'
+import { RiArrowDropDownLine } from 'react-icons/ri'
+import { IoMdClose } from 'react-icons/io'
+import { FiPhoneCall } from 'react-icons/fi'
+import Swal from 'sweetalert2'
+import Call from './Call'
+
+export const socket = io({
+  path: '/api/socket',
+})
 export default function Home() {
-  const user = useContext(UserCTX)
-  const users = trpc.getAllUser.useQuery(user.uuid)
-  const nav = useNavigate()
-const deleteAkun = trpc.deleteAccount.useMutation() 
-  async function HapusAkun() {
-    const res = await Swal.fire({
-        title : "Apakah anda ingin menghapus akun ini?",
-        icon : "question",
-        showCancelButton : true
-    })
-    if(
-        res.isConfirmed 
-    ) {
-        await deleteAkun.mutateAsync()
-        nav('/login')
+  const [selectedChat, setSelectedChat] = useState('')
+  const [sedangMengetik, setSedangMengetik] = useState(false)
+  const [pesan, setPesan] = useState('')
+  const [prevChat, setPrevChat] = useState(0)
+  const chat = trpc.getAllChat.useQuery({
+    uuid2: selectedChat,
+  })
+  const user = trpc.getUserFromToken.useQuery()
+  const user2 = trpc.getUser.useQuery(selectedChat)
+  const kirimPesan = trpc.sendChat.useMutation()
+  const hapusPesan = trpc.deleteChat.useMutation()
+  const [isMobile, setIsMobile] = useState(false)
+  const [sideActive, setSideActive] = useState(true)
+  const [image, setImage] = useState<File>()
+  const kirimGambar = trpc.sendImage.useMutation()
+  const [displayMessage, setDisplayMessage] = useState(null)
+  const [isCall, setCall] = useState(false)
+  const [isCalling, setCalling] = useState(false)
+  async function sendImage() {
+    console.log(image)
+    const reader = new FileReader()
+    //@ts-ignore
+    reader.readAsDataURL(image)
+
+    reader.onload = async (e) => {
+      //@ts-ignore
+      const result = await kirimGambar.mutateAsync({
+        to: selectedChat,
+        //@ts-ignore
+        image: e.target.result,
+        //@ts-ignore
+        imageName: image?.name,
+        text: pesan,
+      })
+      if (!result.status) {
+        return
+      }
+      chat.refetch()
+      //@ts-ignore
+      socket.emit('message', selectedChat, user.data?.msg?.uuid)
     }
+    //@ts-ignore
+    setImage()
+  }
+  useEffect(() => {
+    if (image && !user2.data?.status && !chat.data?.status) {
+      //@ts-ignore
+      setImage()
+    }
+  }, [image])
+
+  useEffect(() => {
+    console.log(selectedChat)
+    setSedangMengetik(false)
+    setPrevChat(0)
+    setDisplayMessage(null)
+    //@ts-ignore
+    setImage()
+    chat.refetch()
+    user2.refetch()
+  }, [selectedChat])
+  useEffect(() => {
+    setIsMobile(innerWidth > 768 ? false : true)
+  }, [])
+  useEffect(() => {
+    if (!user.data?.status) {
+      return
+    }
+    console.log(user.data)
+    //@ts-ignore
+    socket.emit('join', user.data?.msg?.uuid)
+  }, [user.data])
+
+  useEffect(() => {
+    socket.on('connect', () => {})
+    socket.on('message', (uuid) => {
+      console.log(uuid)
+      if (uuid != selectedChat) {
+        return
+      }
+      chat.refetch()
+    })
+    socket.on('mengetik', (uuid) => {
+      console.log('Ada yang mengetik', uuid)
+      if (uuid != selectedChat) {
+        return
+      }
+      setSedangMengetik(true)
+    })
+    socket.on('tidak-mengetik', (uuid) => {
+      if (uuid != selectedChat) {
+        return
+      }
+      setSedangMengetik(false)
+    })
+    socket.on('call', (uuid) => {
+      setSedangMengetik(false)
+      setPrevChat(0)
+      setSelectedChat(uuid)
+      setCalling(false)
+      setSideActive(false)
+      setCall(true)
+    })
     
- 
- }
-  if (users.isLoading) {
-    return <div>Loading...</div>
+    return () => {
+      socket.off('connect')
+      socket.off('message')
+      socket.off('mengetik')
+      socket.off('tidak-mengetik')
+      socket.off('call')
+    }
+  }, [0, selectedChat])
+
+  useEffect(() => {
+    if (!chat.data?.status) {
+      return
+    }
+    //@ts-ignore
+    if (chat.data?.msg.length > prevChat) {
+      //@ts-ignore
+      document.getElementById('chatId').lastChild?.scrollIntoView()
+    }
+    //@ts-ignore
+    setPrevChat(chat.data?.msg.length)
+    return () => {
+      setSedangMengetik(false)
+      setPrevChat(0)
+      setSideActive(false)
+    }
+  }, [0, chat.data])
+  async function sendPesan() {
+    const isiPesan = pesan
+    setPesan('')
+    try {
+      const result = await kirimPesan.mutateAsync({ uuid2: selectedChat, text: isiPesan })
+      chat.refetch()
+      //@ts-ignore
+      socket.emit('message', selectedChat, user.data?.msg?.uuid)
+    } catch (err) {
+      console.log(err)
+    }
   }
-  if (users.isError) {
-    nav('/login')
-    return <></>
+
+  if (user.isLoading) {
+    return (
+      <div className={Style.loading}>
+        <h1>Loading</h1>
+      </div>
+    )
   }
-  if (!users.data?.status && typeof users.data?.msg == 'string') {
-    return <div>{users.data?.msg}</div>
+  if (user.isError) {
+    return (
+      <div className={Style.loading}>
+        <h1>Error</h1>
+      </div>
+    )
   }
-  const data = users.data?.msg as Array<any>
+
+  if (!user.data?.status) {
+    return (
+      <div className={Style.loading}>
+        <h1>{user.data?.msg as string}</h1>
+      </div>
+    )
+  }
+
+  const Chatbox = ({ item, ind }: { item: any; ind: number }) => {
+    const [drop, setDrop] = useState(false)
+    return (
+      <div
+        className={`${Style.chatBox} ${
+          //@ts-ignore
+          user.data?.msg.uuid == item.from ? Style.fromMe : ''
+        }`}
+      >
+        {item.image != null ? (
+          <img
+            src={`/api/gambar/${item.image}`}
+            onClick={() => {
+              console.log('oke')
+              setDisplayMessage(item.image)
+            }}
+          />
+        ) : (
+          <></>
+        )}
+        <p
+          style={{
+            display: item.text.trim().length == 0 ? 'none' : 'block',
+            lineBreak: 'normal',
+            width: '100%',
+            height: 'max-content',
+            wordWrap: 'break-word',
+          }}
+        >
+          {item.text}
+        </p>
+
+        <p className={Style.date}>{new Date(item.date).toLocaleString()}</p>
+        <div className={Style.dropPesan}>
+          <p
+            onClick={() => {
+              setDrop(!drop)
+            }}
+          >
+            <RiArrowDropDownLine fontSize={'x-large'} />
+          </p>
+        </div>
+        <div className={`${Style.dropItems} ${drop ? Style.dropActive : ''}`}>
+          <div
+            className={Style.dropItem}
+            onClick={() => {
+              Swal.fire({
+                title: 'Apakah anda ingin menghapus pesan ini ?',
+                icon: 'question',
+                showDenyButton: true,
+              }).then(async (res) => {
+                if (!res.isConfirmed) {
+                  return
+                }
+                try {
+                  await hapusPesan.mutateAsync(item.id)
+                  chat.refetch()
+                  //@ts-ignore
+                  socket.emit('message', selectedChat, user.data?.msg?.uuid)
+                } catch (err) {}
+                setDrop(false)
+              })
+            }}
+          >
+            Hapus
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div>
-      <a style={{color : "red", cursor:"pointer"}} onClick={() => {
-        HapusAkun()
-      }}  >Hapus Akun</a>
-      <div className={Style.users}>
-        {data.map((el) => (
-          <div className={Style.user}>
-            <div
-              className={Style.boxUser}
+    <div className={Style.container}>
+      <SideBar
+        sideActive={sideActive}
+        setSideActive={setSideActive}
+        isMobile={isMobile}
+        username={
+          //@ts-ignore
+
+          user.data?.msg.username
+        }
+        setSelectedChat={setSelectedChat}
+        selectedChat={selectedChat}
+      />
+      <main className={Style.main}>
+        {isMobile ? (
+          <div
+            className={Style.backSide}
+            onClick={() => {
+              setSideActive(true)
+            }}
+          >
+            <BiArrowBack color="white" fontSize={'x-large'} />
+          </div>
+        ) : (
+          <></>
+        )}
+        <div className={Style.header}>
+          {
+            //@ts-ignore
+            user2.data?.status && (!user2.isLoading || !user2.isError) ? (
+              <>
+                <div className={Style.username}>
+                  {
+                    //@ts-ignore
+                    user2.data?.msg.username
+                  }
+                  <br />
+                  <p className={Style.userStatus}>{sedangMengetik ? 'Sedang Mengetik' : ''}</p>
+                </div>
+                <div
+                  className={Style.callIcon}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    //@ts-ignore
+                    socket.emit('call', user.data.msg.uuid, selectedChat)
+                    setCall(true)
+                    setCalling(true)
+                  }}
+                >
+                  <FiPhoneCall color="whitesmoke" />
+                </div>
+              </>
+            ) : (
+              <></>
+            )
+          }
+        </div>
+        <div className={Style.chat} id="chatId">
+          {
+            //@ts-ignore
+
+            chat.data?.status && (!chat.isLoading || !chat.isError) ? (
+              //@ts-ignore
+              chat.data?.msg.map((item: any, index: number) => {
+                //@ts-ignore
+                return <Chatbox item={item} index={index} />
+              })
+            ) : (
+              <></>
+            )
+          }
+        </div>
+        {user2.data?.status && (!user2.isError || !user2.isLoading) ? (
+          <div className={Style.textInput}>
+            <div className={Style.imageInput}>
+              <label htmlFor="gambar" style={{ cursor: 'pointer' }}>
+                <BsCardImage fontSize={'x-large'} color="white" />
+              </label>
+              <input
+                accept="image/png, image/jpeg"
+                style={{ display: 'none' }}
+                type="file"
+                name="gambar"
+                id="gambar"
+                onChange={(ev) => {
+                  if (ev.target.files) {
+                    setImage(ev.target.files[0])
+                  }
+                }}
+              />
+            </div>
+            <input
+              type="text"
+              placeholder="Masukkan pesan"
+              value={pesan}
+              onFocus={() => {
+                //@ts-ignore
+                socket.emit('mengetik', selectedChat, user.data?.msg?.uuid)
+              }}
+              onBlur={() => {
+                //@ts-ignore
+                socket.emit('tidak-mengetik', selectedChat, user.data?.msg?.uuid)
+              }}
+              onKeyDown={(ev) => {
+                if (ev.key != 'Enter') {
+                  return
+                }
+                sendPesan()
+              }}
+              onChange={(ev) => {
+                setPesan(ev.target.value)
+              }}
+            />
+            <button
               onClick={() => {
-                nav('/user/' + el.uuid)
+                sendPesan()
               }}
             >
-              {el.username}
+              <BiSend color="white" />
+            </button>
+          </div>
+        ) : (
+          <></>
+        )}
+        {image ? (
+          <div className={Style.imagePreview}>
+            {isMobile ? (
+              <div
+                className={Style.backSidePreview}
+                onClick={() => {
+                  //@ts-ignore
+
+                  setImage()
+                }}
+              >
+                <BiArrowBack color="white" fontSize={'x-large'} />
+              </div>
+            ) : (
+              <></>
+            )}
+            <div
+              className={Style.imageBlur}
+              onClick={() => {
+                //@ts-ignore
+                setImage()
+              }}
+            ></div>
+            <div className={Style.imageBox}>
+              <img src={URL.createObjectURL(image)} alt="preview" />
+              <div className={Style.sendBox}>
+                <input
+                  type="text"
+                  placeholder="Masukkan pesan"
+                  value={pesan}
+                  onFocus={() => {
+                    //@ts-ignore
+                    socket.emit('mengetik', selectedChat, user.data?.msg?.uuid)
+                  }}
+                  onBlur={() => {
+                    //@ts-ignore
+                    socket.emit('tidak-mengetik', selectedChat, user.data?.msg?.uuid)
+                  }}
+                  onKeyDown={(ev) => {
+                    if (ev.key != 'Enter') {
+                      return
+                    }
+                    sendImage()
+                  }}
+                  onChange={(ev) => {
+                    setPesan(ev.target.value)
+                  }}
+                />
+                <button>
+                  <BiSend
+                    fontSize={'x-large'}
+                    color="whitesmoke"
+                    onClick={() => {
+                      sendImage()
+                    }}
+                  />
+                </button>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        ) : (
+          <></>
+        )}
+        {displayMessage != null ? (
+          <div className={Style.displayMessage}>
+            <div className={Style.displayHeader}>{displayMessage}</div>
+            <div className={Style.displayBody}>
+              <img src={`/api/gambar/${displayMessage}`} alt={displayMessage} />
+            </div>
+
+            <div
+              className={Style.exitDisplay}
+              onClick={() => {
+                setDisplayMessage(null)
+              }}
+            >
+              <IoMdClose color="red" fontSize={'xx-large'} fontWeight={'bolder'} />
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
+      </main>
+      {isCall ? (
+        <Call
+        setCalling={setCalling}
+          isCalling={isCalling}
+          from={
+            //@ts-ignore
+            user.data?.msg?.uuid
+          }
+          to={
+            //@ts-ignore
+            selectedChat
+          }
+          setCall={setCall}
+        />
+      ) : (
+        <></>
+      )}
     </div>
   )
 }

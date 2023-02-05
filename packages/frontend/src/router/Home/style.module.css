@@ -1,29 +1,280 @@
-.users {
-    width: 100%;
-    height: max-content;
+.main {
+    position: relative;
+    width: 75vw;
+    height: 100vh;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    background-color: #2C3333;
+}
+
+.container {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.loading {
+    height: 100vh;
+    background-color: #2C3333;
+    color: whitesmoke;
+    display: grid;
+    place-items: center;
+
+}
+
+.bodLoading {
+    background-color: #2C3333;
+    color: whitesmoke;
+    display: grid;
+    place-items: center;
+    height: 100%;
+}
+
+.header {
+    height: 10%;
+    margin-top: 1rem;
+    margin-left: 1.2rem;
+    display: flex;
+    align-items: center;
+}
+
+.userIcon {
+    width: 3rem;
+    height: 3rem;
+    background-color: #395B64;
+    border-radius: 50%;
+}
+
+.username {
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
-}
-
-
-.user {
-    display: grid;
-    place-items: center;
-    height: 10rem;
-}
-
-.boxUser {
-    width: 80%;
-    height: 90%;
-    border-radius: .5rem;
+    align-items: center;
+    margin-left: 3rem;
     font-weight: bolder;
-    font-size: xx-large;
-    background-color: darkkhaki;
-    display: grid;
-    place-items: center;
+    font-size: x-large;
+    color: whitesmoke;
+    width: 80%;
+    justify-content: center;
 }
 
-.boxUser:hover {
+.userStatus {
+    font-weight: lighter !important;
+    font-size: small;
+}
+
+.chat {
+    display: flex;
+    flex-direction: column;
+    height: 80%;
+    gap : .9rem;
+    margin-left:1.2rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+.chatBox {
+    position: relative;
+    color : whitesmoke;
+    background-color: #556363;
+    padding : 2rem 1rem;
+    border-radius :.5rem;
+    min-width: 8rem;
+    width: max-content;
+    max-width: 50%;
+    font-size: large;
+}   
+.chatBox.fromMe {
+    background-color: #0F3460;
+    margin-right: .5rem;
+    align-self: flex-end;
+}
+.date {
+    position: absolute;
+    bottom : 0;
+    right : 0;
+    margin-right: .2rem;
+    font-size: x-small !important;
+    
+}
+
+.textInput, .sendBox {
+
+    height: 10%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.textInput>input   {
+    all : unset;
+    width: 70%;
+    color: whitesmoke;
+}
+
+.sendBox>input {
+    all : unset;
+    min-width: 100%;
+    padding : 2rem 0;
+    color: whitesmoke;
+    
+}
+.textInput>button {
+    all : unset;
+    padding: 0 2rem;
+}
+.textInput>button:hover {
+    background-color: #495353;
+
+}
+
+@media screen and (max-width:768px) {
+    .main {
+        width: 100%;
+    }
+   
+}
+
+.backSide {
+    position: absolute;
+    top : 1rem;
+    left : 1rem;
+}
+
+.dropPesan {
+    display: none;
+    position: absolute;
+    top : 0;
+    right : 2px;
     cursor: pointer;
+}
+.fromMe>.dropPesan {
+    display: block;
+}
+
+.dropItems {
+    display: none;
+    position: absolute;
+    top : 2rem;
+    left : 0;
+    width: 100%;
+    background-color: #5c6969;
+    flex-direction: column;
+    padding: .5rem 0;
+    border-radius: .5rem;
+    user-select: none;
+}
+.dropItem:hover {
+    background-color: #7f9292;
+}
+.dropActive {
+    display: flex;
+}
+
+.imagePreview {
+    position: absolute;
+    top : 0;
+    left : 0;
+    width: 100%;
+    height: 100vh;
+}
+
+.imageBox {
+    position: absolute;
+    bottom: 0;
+    left : 0;
+    width: 50%;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 2rem;
+    background-color: #586464;
+    border-radius: .5rem;
+    align-items: center;
+}
+
+.imageBox>img {
+    width: 90%;
+    height: 70%;
+    max-height: 80vh;
+
+    object-fit: contain;
+}
+
+
+
+.sendBox>button {
+    all : unset;
+    padding: .5rem .5rem;
+    background-color: #0F3460;
+    border-radius: .5rem;
+}
+.sendImage>button:hover {
+    background-color:#09182b ;
+}
+
+.sendImage>button:active {
+    background-color: #050d18;
+}
+.imageBlur {
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(2px);
+
+}
+
+.chatBox>img {
+    width: 100%;
+    object-fit: contain;
+
+}
+
+.displayMessage {
+    position: absolute;
+    top : 0;
+    left : 0;
+    z-index: 800;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+}
+.displayHeader {
+    height: 10vh;
+    text-align: center;
+    font-size: xx-large;
+    font-weight: bolder;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: whitesmoke;
+
+}
+.displayBody  {
+    height: 90vh;
+    overflow: auto;
+}
+
+.displayBody>img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.exitDisplay {
+    position: absolute;
+    top : 20px;
+    right : 20px;
+    cursor: pointer;
+}
+.backSidePreview {
+    position: absolute;
+    top : 10px;
+    left : 10px;
+    z-index: 1000;
+}
+@media screen and (max-width: 768px) {
+    .imageBox {
+        width: 100%;
+        height: 100%;
+    }
 }

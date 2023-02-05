@@ -20,10 +20,11 @@ model User {
 
 model Chat {
   id Int @id @default(autoincrement())
-  uuid String  
-  uuid2 String 
   from String 
-  text String? 
+  to String
+  text String?
+  image String? 
   date DateTime 
 }
+
 

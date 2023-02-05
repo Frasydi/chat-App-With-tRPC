@@ -8,12 +8,11 @@ import {
   useLocation,
 } from "react-router-dom";
 import Login from './router/Login';
-import User from './router/User';
 import Layout from './layout';
 import { useCookies } from 'react-cookie';
 import Home from './router/Home';
-import Chat from './router/Chat';
 import ErrorPage from './ErrorPage';
+import "animate.css"
 const router = createBrowserRouter([
   {
     path: "/",
@@ -27,14 +26,7 @@ const router = createBrowserRouter([
         path : "/login", 
         element : <Login/>
       },
-      {
-        path : "/user/:uuid",
-        element : <User/>
-      },
-      {
-        path : "/chat/:uuid",
-        element : <Chat/>
-      }
+      
     ],
     errorElement : <ErrorPage/>
   },

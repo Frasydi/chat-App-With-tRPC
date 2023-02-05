@@ -1,12 +1,14 @@
 import prisma from '.'
+import autoIncrementFileNames from '../utils/duplicateFileNames'
+import * as fs from "fs"
 export async function getChat({uuid, uuid2} :{uuid : string, uuid2 : string}) {
   try {
     const result = await prisma.chat.findMany({
       where: {
-        uuid: {
+        from: {
           in : [uuid, uuid2]
         },
-        uuid2: {
+        to: {
           in : [uuid, uuid2]
         },
       },
@@ -28,19 +30,13 @@ export async function getChat({uuid, uuid2} :{uuid : string, uuid2 : string}) {
   }
 }
 
-export async function createChat({uuid, uuid2, from , text}:{uuid: string, uuid2: string, from : string, text : string}) {
-    if(![uuid, uuid2].includes(from)) {
-        return {
-            status : false,
-            msg : "Tidak dapat menentukan siapa pengirimnya"
-        }
-    }
+export async function createChat({uuid, uuid2 , text}:{uuid: string, uuid2: string, text : string}) {
+    
     try {
         const result = await prisma.chat.create({
             data: {
-                uuid,
-                uuid2,
-                from,
+                to : uuid2,
+                from : uuid,
                 text,
                 date: new Date()
             }
@@ -81,12 +77,51 @@ export async function deletePesan(id:number, who : string) {
         id
       }
     })
+    if(result.image != null) {
+      try {
+
+        fs.unlinkSync("image/"+result.image)
+      }catch(err) {
+        console.log(err)
+      }
+    }
     return {
       status : true,
       msg : "Berhasil menghapus pesan"
     }
   }
   catch (err) {
+    console.log(err)
+    return { 
+      status : false,
+      msg : "Server Error"
+    }
+  }
+}
+
+export async function kirimGambar(imageName:string, imageBuffer:string, from:string, to : string, text : string) {
+  const check = autoIncrementFileNames(imageName, imageBuffer)
+  if(!check) {
+    return {
+      status : false,
+      msg : "Tidak dapat mengirim gambar"
+    }
+  }
+  try {
+    const result = await prisma.chat.create({
+      data : {
+        from,
+        to, 
+        image : imageName,
+        date: new Date(),
+        text : text
+      }
+    })
+    return {
+      status : true,
+      msg : "Berhasil mengirim gambar"
+    }
+  }catch(err) {
     console.log(err)
     return { 
       status : false,

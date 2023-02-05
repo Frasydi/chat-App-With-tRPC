@@ -7,7 +7,10 @@ import { createContext } from "./trpc";
 import http from "http"
 import {Server} from "socket.io"
 import cookieParser from "cookie-parser";
+import * as path from "path"
+import {ExpressPeerServer} from "peer"
 dotenv.config()
+
 
 
 
@@ -25,6 +28,20 @@ export type AppRouter = typeof appRouter;
 const app = express();
 const port = 8000;
 const server = http.createServer(app)
+const peerServer = ExpressPeerServer(server, {
+  path: '/app',
+  //@ts-ignore
+  debug : true,
+  
+});
+
+peerServer.on("connection", (client) => {
+  console.log(client.getId())
+})
+
+peerServer.on("disconnect", (client) => {
+  console.log(client.getId())
+})
 
 const io = new Server(server, {
   cors : {
@@ -35,19 +52,33 @@ const io = new Server(server, {
 
 
 io.on('connection', (socket) => {
-  
-  socket.on('message', (uuid) => {
-    io.emit('message', uuid)
+  socket.on("join", (uuid) => {
+    socket.join(uuid)
   })
-  socket.on('mengetik', (uuid) => {
-    console.log(uuid)
-    socket.broadcast.emit('sedang-mengetik', uuid)
+  socket.on('message', (uuid, uuid2) => {
+    console.log(socket.rooms)
+    console.log(uuid, uuid2)
+    socket.to(uuid).emit('message', uuid2)
   })
-  socket.on("tidak-mengetik", (uuid) => {
-    socket.broadcast.emit("tidak-mengetik", uuid)
+  socket.on('mengetik', (uuid, uuid2) => {
+    console.log(socket.rooms)
+    console.log("Sedang mengetik", uuid, uuid2)
+    socket.to(uuid).emit('mengetik', uuid2)
+  })
+  socket.on("tidak-mengetik", (uuid, uuid2) => {
+    socket.to(uuid).emit("tidak-mengetik", uuid2)
   })
 
-  
+  socket.on("call", (from, to) => {
+    socket.to(to).emit("call", from)
+  })
+  socket.on("call-stop", (to, from) => {
+    io.to(from).to(to).emit("call-stop")
+  })
+
+  socket.on("calling", (to, from) => {
+    socket.to(to).emit("calling", from )
+  })
 
 });
 
@@ -56,6 +87,9 @@ io.on('connection', (socket) => {
 
 app.use(cors())
 app.use(cookieParser())
+
+app.use("/api/gambar",express.static(path.join(__dirname, 'image')));
+app.use('/api/peer', peerServer);
 app.use(
   '/api/trpc',
   trpcExpress.createExpressMiddleware({
