@@ -112,11 +112,11 @@ Untuk menggunakan backend ini di aplikasi Anda. Pertama-tama buatlah sebuah fold
 npm init -y
 ```
 
-1. ketik perintah berikut di terminal
+2. ketik perintah berikut di terminal
 ```
 npm install @trpc/client ts-node
 ```
-2. Buat file index.ts, lalu ketik kode berikut
+3. Buat file index.ts, lalu ketik kode berikut
 
 ```typescript
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
@@ -138,12 +138,12 @@ masuk ke package json lalu rubah isi dari propery script menjadi berikut
   },
 ```
 
-3. setelah itu inisialisasi typescript menggunakan command 
+4. setelah itu inisialisasi typescript menggunakan command 
 ```
 tsc init
 ```
 
-4. Masuk lagi ke index.ts dan masukkan kode berikut
+5. Masuk lagi ke index.ts dan masukkan kode berikut
 
 ```typescript 
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
