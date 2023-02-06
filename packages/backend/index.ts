@@ -66,7 +66,16 @@ io.on('connection', (socket) => {
   socket.on("calling", (to, from) => {
     socket.to(to).emit("calling", from )
   })
+  
+});
 
+process.on('uncaughtException', (error, origin) => {
+  //@ts-ignore
+  if (error?.code === 'ECONNRESET') return;
+  console.error('UNCAUGHT EXCEPTION');
+  console.error(error);
+  console.error(origin);
+  process.exit(1);
 });
 
 
