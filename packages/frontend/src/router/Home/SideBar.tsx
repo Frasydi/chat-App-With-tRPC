@@ -25,7 +25,7 @@ export default function SideBar({
   const users = trpc.searchUser.useQuery(search)
   const logout = trpc.logout.useMutation()
   const nav = useNavigate()
-  
+  const hapusAkun = trpc.deleteAccount.useMutation()
   useEffect(() => {
     //@ts-ignore
     
@@ -87,7 +87,25 @@ useEffect(() => {
                 })
                 
               }}>Logout</div>
-              <div className={Style.optDropDownItem}>Hapus Akun</div>
+              <div className={Style.optDropDownItem} onClick={() => {
+                Swal.fire({
+                  title : "Peringatan",
+                  text : "Apakah anda ingin menghapus akun ini?",
+                  icon : "warning",
+                  showCancelButton : true,
+                  confirmButtonText : "Ya",
+                  cancelButtonText : "Tidak",
+                  allowEscapeKey : false,
+                  allowOutsideClick : false,
+                  showConfirmButton : true,
+                  
+                }).then(res => {
+                  if(!res.isConfirmed) return
+                  hapusAkun.mutateAsync().then(() => {
+                    nav("/login")
+                  })
+                })
+              }}>Hapus Akun</div>
             </div>
           </div>
         </div>

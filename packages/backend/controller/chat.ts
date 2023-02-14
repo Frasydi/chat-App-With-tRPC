@@ -112,7 +112,7 @@ export async function kirimGambar(imageName:string, imageBuffer:string, from:str
       data : {
         from,
         to, 
-        image : imageName,
+        image : check,
         date: new Date(),
         text : text
       }

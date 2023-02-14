@@ -10,7 +10,8 @@ import { IoMdClose } from 'react-icons/io'
 import { FiPhoneCall } from 'react-icons/fi'
 import Swal from 'sweetalert2'
 import Call from './Call'
-
+import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
+import Linkify from "linkify-react";
 export const socket = io({
   path: '/api/socket',
 })
@@ -58,9 +59,27 @@ export default function Home() {
     setImage()
   }
   useEffect(() => {
+    getLink()
+  }, [pesan])
+  
+  async function getLink() {
+    try {
+
+      const data:any = await getLinkPreview(pesan, {
+        
+      })
+      console.log(data)
+      if(data.images.length == 0) return
+    }catch(err) {
+      console.log(err)
+    }
+  }
+  useEffect(() => {
+    if(image == null) return
     if (image && !user2.data?.status && !chat.data?.status) {
       //@ts-ignore
       setImage()
+      return
     }
   }, [image])
 
@@ -109,6 +128,10 @@ export default function Home() {
       setSedangMengetik(false)
     })
     socket.on('call', (uuid) => {
+      console.log(isCall)
+      if(isCall) {
+        socket.emit('deny-call', uuid)
+      }
       setSedangMengetik(false)
       setPrevChat(0)
       setSelectedChat(uuid)
@@ -124,7 +147,7 @@ export default function Home() {
       socket.off('tidak-mengetik')
       socket.off('call')
     }
-  }, [0, selectedChat])
+  }, [0, selectedChat, isCall])
 
   useEffect(() => {
     if (!chat.data?.status) {
@@ -181,6 +204,22 @@ export default function Home() {
 
   const Chatbox = ({ item, ind }: { item: any; ind: number }) => {
     const [drop, setDrop] = useState(false)
+    const [linkPreview, setLinkPreview] = useState<any>(null)
+    useEffect(() => {
+      getLink()
+    }, [])
+    async function getLink() {
+      try {
+        const data:any = await getLinkPreview(item.text, {
+          
+        })
+        console.log(data)
+        if(data.images.length == 0) return
+        setLinkPreview({url : data.url,gambar : data.images[0]})
+      }catch(err) {
+        console.log(err)
+      }
+    }
     return (
       <div
         className={`${Style.chatBox} ${
@@ -199,7 +238,21 @@ export default function Home() {
         ) : (
           <></>
         )}
-        <p
+        {
+          linkPreview != null ? (
+            <img
+            src={linkPreview.gambar}
+            onClick={() => {
+              window.open(linkPreview.url)
+            }}
+          />
+          ) : <></>
+        }
+        
+        <Linkify  as="p" options={{className : Style.textChat}} >
+          {item.text}
+        </Linkify>
+        {/* <p
           style={{
             display: item.text.trim().length == 0 ? 'none' : 'block',
             lineBreak: 'normal',
@@ -207,9 +260,10 @@ export default function Home() {
             height: 'max-content',
             wordWrap: 'break-word',
           }}
+          
         >
-          {item.text}
-        </p>
+
+        </p> */}
 
         <p className={Style.date}>{new Date(item.date).toLocaleString()}</p>
         <div className={Style.dropPesan}>
@@ -295,9 +349,10 @@ export default function Home() {
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
                     //@ts-ignore
-                    socket.emit('call', user.data.msg.uuid, selectedChat)
                     setCall(true)
                     setCalling(true)
+                    //@ts-ignore
+                    socket.emit('call', user.data.msg.uuid, selectedChat)
                   }}
                 >
                   <FiPhoneCall color="whitesmoke" />
@@ -375,15 +430,17 @@ export default function Home() {
         ) : (
           <></>
         )}
-        {image ? (
+        {image != null ? (
           <div className={Style.imagePreview}>
             {isMobile ? (
               <div
                 className={Style.backSidePreview}
                 onClick={() => {
+                  console.log("LOl")
                   //@ts-ignore
-
-                  setImage()
+                  setPreviewImage(null)
+                  //@ts-ignore
+                  setImage(null)
                 }}
               >
                 <BiArrowBack color="white" fontSize={'x-large'} />
@@ -394,6 +451,8 @@ export default function Home() {
             <div
               className={Style.imageBlur}
               onClick={() => {
+                //@ts-ignore
+                setPreviewImage(null)
                 //@ts-ignore
                 setImage()
               }}

@@ -278,3 +278,9 @@
         height: 100%;
     }
 }
+.textChat {
+    line-break: 'normal';
+    width: '100%';
+    height: 'max-content';
+    word-wrap: 'break-word';
+}

@@ -31,16 +31,19 @@ const server = http.createServer(app)
 
 
 const io = new Server(server, {
+  //@ts-ignore
+  'force new connection': true,
   cors : {
     origin : "*"
   },
-  path : "/api/socket"
+  path : "/api/socket",
 })
 
 
 io.on('connection', (socket) => {
   socket.on("join", (uuid) => {
     socket.join(uuid)
+    console.log(socket.rooms)
   })
   socket.on('message', (uuid, uuid2) => {
     console.log(socket.rooms)
@@ -60,22 +63,18 @@ io.on('connection', (socket) => {
     socket.to(to).emit("call", from)
   })
   socket.on("call-stop", (to, from) => {
+    console.log(to, from)
     io.to(from).to(to).emit("call-stop")
   })
 
   socket.on("calling", (to, from) => {
     socket.to(to).emit("calling", from )
   })
-  
-});
 
-process.on('uncaughtException', (error, origin) => {
-  //@ts-ignore
-  if (error?.code === 'ECONNRESET') return;
-  console.error('UNCAUGHT EXCEPTION');
-  console.error(error);
-  console.error(origin);
-  process.exit(1);
+  socket.on("deny-call", to => {
+    socket.to(to).emit("deny-call")
+  })
+  
 });
 
 

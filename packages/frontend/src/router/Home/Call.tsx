@@ -19,76 +19,81 @@ export default function Call({
 }) {
   const myVideo = useRef<any>()
   const userVideo = useRef<any>()
+  const [stream, setStream] = useState<any>()
+  const [calls, setCalls] = useState(true)
   useEffect(() => {
-    const peers = new Peer()
-    const MediaDevices =
-      navigator?.mediaDevices ||
-      //@ts-ignore
-      navigator?.mozGetUserMedia ||
-      //@ts-ignore
-      navigator?.webkitGetUserMedia ||
-      //@ts-ignore
-      navigator?.getUserMedia
+    setCall(calls)
+    setCalling(calls)
+  }, [calls])
 
-    if(!isCalling) {
-      socket.on("calling", id => {
-        console.log(id)
-        MediaDevices.getUserMedia({video : true,audio : true}).then(stream => {
-          const call = peers.call(id, stream)
-          call.on("stream", stream => {
-            userVideo.current.srcObject = stream
-          })
-          
-          socket.on("call-stop", () => {
-            stream.getVideoTracks().forEach(track => { 
-              track.stop()
-            })
-            stream.getAudioTracks().forEach(track => { 
-              track.stop()
-            })
-            setCall(false)
+  function stop() {
+    console.log(stream)
+    stream?.getVideoTracks().forEach((track:any) => { 
+      track.stop()
+    })
+    stream?.getAudioTracks().forEach((track:any) => { 
+      track.stop()
+    })
+  }
+
+
+  useEffect(() => {
+    
+    const peers = new Peer()
+    console.log(peers)
+    const MediaDevices =
+    navigator?.mediaDevices ||
+    //@ts-ignore
+    navigator?.mozGetUserMedia ||
+    //@ts-ignore
+    navigator?.webkitGetUserMedia ||
+    //@ts-ignore
+    navigator?.getUserMedia
+
+    MediaDevices.getUserMedia({video : true, audio : true}).then(streams => {
+      setStream(streams)
+      if(!isCalling) {
+        socket.on("calling", id => {
+          const call = peers.call(id, streams)
+          call.on("stream", stream2 => {
+            userVideo.current.srcObject = stream2
           })
         })
-      
-      })
-    } else {
+      } else {
 
-    peers.on('call', call => {
-      MediaDevices.getUserMedia({video : true, audio : true}).then(stream => {
-        call.answer(stream)
-        call.on('stream', stream2 => {
-          userVideo.current.srcObject = stream2
+        peers.on("call", call => {
+          call.answer(streams)
+          call.on('stream', stream2 => {
+            userVideo.current.srcObject = stream2
+          })
+        })
+        peers.on("open", (id) => {
+          socket.emit("calling", to, id)
         })
         
-        socket.on("call-stop", () => {
-          stream.getVideoTracks().forEach(track => { 
-            track.stop()
-          })
-          stream.getAudioTracks().forEach(track => { 
-            track.stop()
-          })
-          setCall(false)
-          setCalling(false)
-        })
-      })
-    })
-    peers.on("open", (id) => {
-      socket.emit("calling", to, id)
-    })
-    }
+      }
 
-    peers.on("error", () => {
-      Swal.fire("Ada masalah", "" ,"error")
-      setCall(false)
-      setCalling(false)
+      socket.on("call-stop", () => {
+        console.log("Hello")
+        stop()
+        setCalls(false)
+      })
+      
+  
+      peers.on("error", () => {
+        Swal.fire("Ada masalah", "" ,"error")
+        socket.emit("call-stop", to, from)
+        
+      })
+
+
     })
+    
+    
     return () => {
-      peers.off("call")
-      peers.off("open")
-      socket.off("calling")
-      peers.disconnect()
+      
     }
-  }, [])
+  }, [0])
 
   return (
     <div className={Style.call}>
