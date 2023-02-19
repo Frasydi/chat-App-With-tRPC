@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "server.ts",
   "scripts": {
-    "start": "vite --host",
-    "dev": "vite",
+    "start": "ts-node --esm server.ts",
+    "dev": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -13,6 +14,8 @@
     "@reduxjs/toolkit": "^1.9.2",
     "animate.css": "^4.1.1",
     "bootstrap": "^5.2.3",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
     "jwt-decode": "^3.1.2",
     "link-preview-js": "^3.0.4",
     "linkify-html": "^4.1.0",
@@ -31,6 +34,7 @@
     "socket.io-client": "^4.5.4",
     "sort-by": "^1.2.0",
     "sweetalert2": "^11.7.1",
+    "ts-node": "^10.9.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

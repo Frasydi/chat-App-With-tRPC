@@ -2,7 +2,6 @@ import prisma from "."
 import bcrypt from "bcrypt"
 import * as uuid from "uuid"
 import {createToken} from "../utils/jwt"
-import { User } from "@prisma/client"
 
 export async function getUserfromuid(uuid:string) {
     try{
@@ -12,7 +11,7 @@ export async function getUserfromuid(uuid:string) {
                 msg : "UUID Kosong"
             }
         }
-        const result = await prisma.user.findFirst(
+        const result = await prisma.user_Kelompok4.findFirst(
             {where : {
                 uuid : uuid
             },
@@ -46,7 +45,7 @@ export async function createUsername({username, password} : {username:string, pa
         const salt = await bcrypt.genSalt(10)
         const hash = await bcrypt.hash(password, salt)
         const uid = uuid.v4()
-        const result = await prisma.user.create({
+        const result = await prisma.user_Kelompok4.create({
             data : {
                 uuid : uid,
                 username : username,
@@ -68,7 +67,7 @@ export async function createUsername({username, password} : {username:string, pa
 
 export async function getAllUser(uuid:string)  {
     try {
-        const result = await prisma.user.findMany({
+        const result = await prisma.user_Kelompok4.findMany({
             select : {
                 uuid : true,
                 username : true,
@@ -104,7 +103,7 @@ export async function getAllUser(uuid:string)  {
 
 export async function searchUser(uuid:string, search:string) {
     try {
-        const result = await prisma.user.findMany({
+        const result = await prisma.user_Kelompok4.findMany({
             select : {
                 uuid : true,
                 username : true,
@@ -142,7 +141,7 @@ export async function searchUser(uuid:string, search:string) {
 
 export async function login({username, password} : {username : string, password : string}) {
     try{
-        const user = await prisma.user.findFirst({where : {
+        const user = await prisma.user_Kelompok4.findFirst({where : {
             username : username
         }})
         if(user == null) {
@@ -176,7 +175,7 @@ export async function login({username, password} : {username : string, password 
 
 export async function hapusAkun(uuid:string) {
     try{
-        const result = await prisma.user.delete({
+        const result = await prisma.user_Kelompok4.delete({
             where : {
                 uuid : uuid
             }
@@ -188,7 +187,7 @@ export async function hapusAkun(uuid:string) {
                 msg : "Tidak menemukan user"
             }
         }
-        await prisma.chat.deleteMany({where : {
+        await prisma.chat_Kelompok4.deleteMany({where : {
             OR : {
                 from : uuid,
                 to : uuid

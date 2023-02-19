@@ -39,6 +39,7 @@ yarn database
 # Jalankan aplikasi
 cukup ketikkan
 ```
+yarn build
 yarn start
 ```
 

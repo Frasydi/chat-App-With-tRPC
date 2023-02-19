@@ -3,7 +3,7 @@ import autoIncrementFileNames from '../utils/duplicateFileNames'
 import * as fs from "fs"
 export async function getChat({uuid, uuid2} :{uuid : string, uuid2 : string}) {
   try {
-    const result = await prisma.chat.findMany({
+    const result = await prisma.chat_Kelompok4.findMany({
       where: {
         from: {
           in : [uuid, uuid2]
@@ -33,7 +33,7 @@ export async function getChat({uuid, uuid2} :{uuid : string, uuid2 : string}) {
 export async function createChat({uuid, uuid2 , text}:{uuid: string, uuid2: string, text : string}) {
     
     try {
-        const result = await prisma.chat.create({
+        const result = await prisma.chat_Kelompok4.create({
             data: {
                 to : uuid2,
                 from : uuid,
@@ -57,7 +57,7 @@ export async function createChat({uuid, uuid2 , text}:{uuid: string, uuid2: stri
 
 export async function deletePesan(id:number, who : string) {
   try {
-    const validate = await prisma.chat.findFirst({where : {
+    const validate = await prisma.chat_Kelompok4.findFirst({where : {
       id : id
     }})
     if(!validate) {
@@ -72,7 +72,7 @@ export async function deletePesan(id:number, who : string) {
         msg : "Anda bukan pengirim pesan ini"
       }
     }
-    const result = await prisma.chat.delete({
+    const result = await prisma.chat_Kelompok4.delete({
       where: {
         id
       }
@@ -108,7 +108,7 @@ export async function kirimGambar(imageName:string, imageBuffer:string, from:str
     }
   }
   try {
-    const result = await prisma.chat.create({
+    const result = await prisma.chat_Kelompok4.create({
       data : {
         from,
         to, 

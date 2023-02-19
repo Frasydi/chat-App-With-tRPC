@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "start": "concurrently \"wsrun --parallel start  \"",
+    "build" : "cd packages/frontend && yarn build",
     "database" : "cd packages/backend && npx prisma migrate dev --name init && npx prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
