@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -21,4 +21,10 @@ model User_Kelompok4 {
   uuid     String @unique
   username String @unique
   password String
+}
+
+model Peminat_Jurusan_Kelompok5 {
+  id Int @id @default(autoincrement())
+  Jurusan String
+  Jumlah_Peminat Int 
 }
